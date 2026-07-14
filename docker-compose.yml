@@ -1,0 +1,40 @@
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      PORT: 3000
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/homelab}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      ALLOWED_EMAILS: ${ALLOWED_EMAILS}
+    depends_on:
+      mongo:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: ./frontend
+    restart: unless-stopped
+    ports:
+      # Publica na porta 8090 do host; aponte seu reverse proxy pra cá.
+      - "8090:80"
+    depends_on:
+      - api
+
+volumes:
+  mongo-data:

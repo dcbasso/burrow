@@ -1,0 +1,30 @@
+{
+  "name": "burrow-api",
+  "version": "1.0.0",
+  "description": "Burrow API — Express + Mongoose + Google OAuth",
+  "author": "Dante Basso <dcbasso@gmail.com> (https://www.dantebasso.com.br/)",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/dcbasso/burrow",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dcbasso/burrow.git"
+  },
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/src/main.js",
+    "dev": "tsx watch src/main.ts"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "google-auth-library": "^9.15.0",
+    "mongoose": "^8.9.5",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

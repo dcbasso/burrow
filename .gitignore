@@ -1,0 +1,20 @@
+# Arquivos de sistema do macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Segredos / ambiente
+.env
+!.env.example
+
+# Node / Angular (app do dashboard)
+node_modules/
+dist/
+.angular/
+
+# Claude Code (config/estado local)
+.claude/
+
+# Deploy real (config pessoal: domínio, e-mails, Client ID). Nunca vai pro repo.
+/prod/
