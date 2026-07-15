@@ -5,6 +5,8 @@ import { DashboardStore } from '../core/dashboard.store';
 import { PrefsService } from '../core/prefs.service';
 import { SettingsUiService } from '../core/settings-ui.service';
 import { UiIconComponent } from '../shared/ui-icon.component';
+import { I18nService } from '../core/i18n.service';
+import { TranslatePipe } from '../core/translate.pipe';
 
 /**
  * Diálogo de Configurações completo (Fase 2): abas Aparência, Tags, Grupos e
@@ -14,22 +16,22 @@ import { UiIconComponent } from '../shared/ui-icon.component';
 @Component({
   selector: 'app-settings-dialog',
   standalone: true,
-  imports: [FormsModule, UiIconComponent],
+  imports: [FormsModule, UiIconComponent, TranslatePipe],
   template: `
     @if (ui.open()) {
       <div class="dialog-backdrop" (click)="ui.close()">
         <div class="dialog settings" (click)="$event.stopPropagation()">
           <div class="nav">
-            <div class="tab" [class.active]="ui.tab() === 'aparencia'" (click)="ui.tab.set('aparencia')">Aparência</div>
-            <div class="tab" [class.active]="ui.tab() === 'tags'" (click)="ui.tab.set('tags')">Tags</div>
-            <div class="tab" [class.active]="ui.tab() === 'grupos'" (click)="ui.tab.set('grupos')">Grupos</div>
-            <div class="tab" [class.active]="ui.tab() === 'idioma'" (click)="ui.tab.set('idioma')">Idioma</div>
+            <div class="tab" [class.active]="ui.tab() === 'aparencia'" (click)="ui.tab.set('aparencia')">{{ 'settings.tabAppearance' | t }}</div>
+            <div class="tab" [class.active]="ui.tab() === 'tags'" (click)="ui.tab.set('tags')">{{ 'settings.tabTags' | t }}</div>
+            <div class="tab" [class.active]="ui.tab() === 'grupos'" (click)="ui.tab.set('grupos')">{{ 'settings.tabGroups' | t }}</div>
+            <div class="tab" [class.active]="ui.tab() === 'idioma'" (click)="ui.tab.set('idioma')">{{ 'settings.tabLanguage' | t }}</div>
           </div>
 
           <div class="content">
             <div class="head">
-              <h3 style="margin:0">Configurações</h3>
-              <button type="button" class="btn btn-icon btn-ghost" (click)="ui.close()" aria-label="Fechar">
+              <h3 style="margin:0">{{ 'settings.title' | t }}</h3>
+              <button type="button" class="btn btn-icon btn-ghost" (click)="ui.close()" [attr.aria-label]="'common.close' | t">
                 <app-ui-icon name="close" [size]="14" />
               </button>
             </div>
@@ -37,55 +39,55 @@ import { UiIconComponent } from '../shared/ui-icon.component';
             <!-- APARÊNCIA -->
             @if (ui.tab() === 'aparencia') {
               <div>
-                <div class="section-title">Tema</div>
+                <div class="section-title">{{ 'settings.theme' | t }}</div>
                 <div class="seg" style="width:100%">
                   <label class="seg-opt" style="flex:1; justify-content:center">
-                    <input type="radio" name="th" [checked]="prefs.theme() === 'dark'" (change)="prefs.setTheme('dark')" />Escuro
+                    <input type="radio" name="th" [checked]="prefs.theme() === 'dark'" (change)="prefs.setTheme('dark')" />{{ 'settings.dark' | t }}
                   </label>
                   <label class="seg-opt" style="flex:1; justify-content:center">
-                    <input type="radio" name="th" [checked]="prefs.theme() === 'light'" (change)="prefs.setTheme('light')" />Claro
+                    <input type="radio" name="th" [checked]="prefs.theme() === 'light'" (change)="prefs.setTheme('light')" />{{ 'settings.light' | t }}
                   </label>
                 </div>
               </div>
               <div>
-                <div class="section-title">Cor de destaque</div>
+                <div class="section-title">{{ 'settings.accent' | t }}</div>
                 <div class="swatch-row">
-                  <div class="swatch purple" [class.selected]="prefs.accent() === 'purple'" (click)="prefs.setAccent('purple')" title="Roxo"></div>
-                  <div class="swatch orange" [class.selected]="prefs.accent() === 'orange'" (click)="prefs.setAccent('orange')" title="Laranja"></div>
-                  <div class="swatch teal" [class.selected]="prefs.accent() === 'teal'" (click)="prefs.setAccent('teal')" title="Verde-azulado"></div>
-                  <div class="swatch blue" [class.selected]="prefs.accent() === 'blue'" (click)="prefs.setAccent('blue')" title="Azul"></div>
+                  <div class="swatch purple" [class.selected]="prefs.accent() === 'purple'" (click)="prefs.setAccent('purple')" [title]="'settings.accentPurple' | t"></div>
+                  <div class="swatch orange" [class.selected]="prefs.accent() === 'orange'" (click)="prefs.setAccent('orange')" [title]="'settings.accentOrange' | t"></div>
+                  <div class="swatch teal" [class.selected]="prefs.accent() === 'teal'" (click)="prefs.setAccent('teal')" [title]="'settings.accentTeal' | t"></div>
+                  <div class="swatch blue" [class.selected]="prefs.accent() === 'blue'" (click)="prefs.setAccent('blue')" [title]="'settings.accentBlue' | t"></div>
                 </div>
               </div>
               <div>
-                <div class="section-title">Tags nos cards</div>
+                <div class="section-title">{{ 'settings.cardTags' | t }}</div>
                 <div class="seg" style="width:100%">
                   <label class="seg-opt" style="flex:1; justify-content:center">
-                    <input type="radio" name="st" [checked]="prefs.showTags()" (change)="prefs.setShowTags(true)" />Mostrar
+                    <input type="radio" name="st" [checked]="prefs.showTags()" (change)="prefs.setShowTags(true)" />{{ 'settings.show' | t }}
                   </label>
                   <label class="seg-opt" style="flex:1; justify-content:center">
-                    <input type="radio" name="st" [checked]="!prefs.showTags()" (change)="prefs.setShowTags(false)" />Ocultar
-                  </label>
-                </div>
-              </div>
-              <div>
-                <div class="section-title">Endereço nos cards</div>
-                <div class="seg" style="width:100%">
-                  <label class="seg-opt" style="flex:1; justify-content:center">
-                    <input type="radio" name="sip" [checked]="prefs.showIp()" (change)="prefs.setShowIp(true)" />Mostrar
-                  </label>
-                  <label class="seg-opt" style="flex:1; justify-content:center">
-                    <input type="radio" name="sip" [checked]="!prefs.showIp()" (change)="prefs.setShowIp(false)" />Ocultar
+                    <input type="radio" name="st" [checked]="!prefs.showTags()" (change)="prefs.setShowTags(false)" />{{ 'settings.hide' | t }}
                   </label>
                 </div>
               </div>
               <div>
-                <div class="section-title">Ícones coloridos</div>
+                <div class="section-title">{{ 'settings.cardAddress' | t }}</div>
                 <div class="seg" style="width:100%">
                   <label class="seg-opt" style="flex:1; justify-content:center">
-                    <input type="radio" name="ci" [checked]="prefs.coloredIcons()" (change)="prefs.setColoredIcons(true)" />Coloridos
+                    <input type="radio" name="sip" [checked]="prefs.showIp()" (change)="prefs.setShowIp(true)" />{{ 'settings.show' | t }}
                   </label>
                   <label class="seg-opt" style="flex:1; justify-content:center">
-                    <input type="radio" name="ci" [checked]="!prefs.coloredIcons()" (change)="prefs.setColoredIcons(false)" />Monocromático
+                    <input type="radio" name="sip" [checked]="!prefs.showIp()" (change)="prefs.setShowIp(false)" />{{ 'settings.hide' | t }}
+                  </label>
+                </div>
+              </div>
+              <div>
+                <div class="section-title">{{ 'settings.coloredIcons' | t }}</div>
+                <div class="seg" style="width:100%">
+                  <label class="seg-opt" style="flex:1; justify-content:center">
+                    <input type="radio" name="ci" [checked]="prefs.coloredIcons()" (change)="prefs.setColoredIcons(true)" />{{ 'settings.colored' | t }}
+                  </label>
+                  <label class="seg-opt" style="flex:1; justify-content:center">
+                    <input type="radio" name="ci" [checked]="!prefs.coloredIcons()" (change)="prefs.setColoredIcons(false)" />{{ 'settings.monochrome' | t }}
                   </label>
                 </div>
               </div>
@@ -93,70 +95,68 @@ import { UiIconComponent } from '../shared/ui-icon.component';
 
             <!-- TAGS -->
             @if (ui.tab() === 'tags') {
-              <div class="section-title">Tags em uso</div>
+              <div class="section-title">{{ 'settings.tagsInUse' | t }}</div>
               @for (t of store.tagUsage(); track t.name) {
                 <div class="manage-row">
                   <input class="input" [ngModel]="tagDraft(t.name)" (ngModelChange)="setTagDraft(t.name, $event)" />
                   <span class="count">{{ t.count }}×</span>
                   @if (tagDirty(t.name)) {
-                    <button type="button" class="btn btn-secondary" (click)="saveTag(t.name)">Salvar</button>
+                    <button type="button" class="btn btn-secondary" (click)="saveTag(t.name)">{{ 'common.save' | t }}</button>
                   }
                   @if (tagConfirm() === t.name) {
-                    <button type="button" class="btn btn-primary" (click)="confirmRemoveTag(t.name)">Confirmar</button>
-                    <button type="button" class="btn btn-secondary" (click)="tagConfirm.set(null)">Cancelar</button>
+                    <button type="button" class="btn btn-primary" (click)="confirmRemoveTag(t.name)">{{ 'common.confirm' | t }}</button>
+                    <button type="button" class="btn btn-secondary" (click)="tagConfirm.set(null)">{{ 'common.cancel' | t }}</button>
                   } @else {
-                    <button type="button" class="btn btn-icon btn-ghost" (click)="tagConfirm.set(t.name)" aria-label="Remover">
+                    <button type="button" class="btn btn-icon btn-ghost" (click)="tagConfirm.set(t.name)" [attr.aria-label]="'common.remove' | t">
                       <app-ui-icon name="close" [size]="14" />
                     </button>
                   }
                 </div>
               }
               @if (store.tagUsage().length === 0) {
-                <div class="empty">Nenhuma tag em uso.</div>
+                <div class="empty">{{ 'settings.noTags' | t }}</div>
               }
             }
 
             <!-- GRUPOS -->
             @if (ui.tab() === 'grupos') {
-              <div class="section-title">Grupos</div>
+              <div class="section-title">{{ 'settings.groups' | t }}</div>
               @for (g of store.grouped(); track g.section._id) {
                 <div class="manage-row">
                   <input class="input" [ngModel]="groupDraft(g.section._id, g.section.name)" (ngModelChange)="setGroupDraft(g.section._id, $event)" />
-                  <span class="count">{{ g.items.length }} itens</span>
+                  <span class="count">{{ 'settings.itemsCount' | t:{ count: g.items.length } }}</span>
                   @if (groupDirty(g.section._id, g.section.name)) {
-                    <button type="button" class="btn btn-secondary" (click)="saveGroup(g.section._id, g.section.icon, g.section.color)">Salvar</button>
+                    <button type="button" class="btn btn-secondary" (click)="saveGroup(g.section._id, g.section.icon, g.section.color)">{{ 'common.save' | t }}</button>
                   }
                   @if (groupConfirm() === g.section._id) {
                     <button type="button" class="btn btn-primary" [disabled]="g.items.length > 0"
-                            [title]="g.items.length > 0 ? 'Mova os serviços antes' : ''" (click)="confirmRemoveGroup(g.section._id)">Confirmar</button>
-                    <button type="button" class="btn btn-secondary" (click)="groupConfirm.set(null)">Cancelar</button>
+                            [title]="g.items.length > 0 ? ('settings.moveServicesFirst' | t) : ''" (click)="confirmRemoveGroup(g.section._id)">{{ 'common.confirm' | t }}</button>
+                    <button type="button" class="btn btn-secondary" (click)="groupConfirm.set(null)">{{ 'common.cancel' | t }}</button>
                   } @else {
-                    <button type="button" class="btn btn-icon btn-ghost" (click)="groupConfirm.set(g.section._id)" aria-label="Remover">
+                    <button type="button" class="btn btn-icon btn-ghost" (click)="groupConfirm.set(g.section._id)" [attr.aria-label]="'common.remove' | t">
                       <app-ui-icon name="close" [size]="14" />
                     </button>
                   }
                 </div>
               }
               <div class="add-row">
-                <input class="input" placeholder="Nome do novo grupo" [(ngModel)]="newGroupName" />
-                <button type="button" class="btn btn-primary" [disabled]="!newGroupName.trim()" (click)="addGroup()">Adicionar</button>
+                <input class="input" [placeholder]="'settings.newGroupPlaceholder' | t" [(ngModel)]="newGroupName" />
+                <button type="button" class="btn btn-primary" [disabled]="!newGroupName.trim()" (click)="addGroup()">{{ 'common.add' | t }}</button>
               </div>
               @if (error()) { <div class="err">{{ error() }}</div> }
             }
 
             <!-- IDIOMA -->
             @if (ui.tab() === 'idioma') {
-              <div class="section-title">Selecionar idioma</div>
+              <div class="section-title">{{ 'settings.selectLanguage' | t }}</div>
               <div class="lang-row">
-                <label class="radio"><input type="radio" name="lang" checked /><span class="dot"></span>Português (Brasil)</label>
+                <label class="radio"><input type="radio" name="lang" [checked]="i18n.locale() === 'pt'" (change)="i18n.setLocale('pt')" /><span class="dot"></span>Português (Brasil)</label>
               </div>
               <div class="lang-row">
-                <label class="radio" style="opacity:.5"><input type="radio" name="lang" disabled /><span class="dot"></span>English</label>
-                <span class="tag tag-neutral soon">em breve</span>
+                <label class="radio"><input type="radio" name="lang" [checked]="i18n.locale() === 'en'" (change)="i18n.setLocale('en')" /><span class="dot"></span>English</label>
               </div>
               <div class="lang-row">
-                <label class="radio" style="opacity:.5"><input type="radio" name="lang" disabled /><span class="dot"></span>Español</label>
-                <span class="tag tag-neutral soon">em breve</span>
+                <label class="radio"><input type="radio" name="lang" [checked]="i18n.locale() === 'es'" (change)="i18n.setLocale('es')" /><span class="dot"></span>Español</label>
               </div>
             }
           </div>
@@ -191,11 +191,11 @@ import { UiIconComponent } from '../shared/ui-icon.component';
     .err { color: #ff6b6b; font-size: 12.5px; }
     .lang-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
     .lang-row + .lang-row { border-top: 1px solid var(--color-divider); }
-    .soon { font-size: 10px; }
   `],
 })
 export class SettingsDialogComponent {
   private api = inject(ApiService);
+  readonly i18n = inject(I18nService);
   readonly store = inject(DashboardStore);
   readonly prefs = inject(PrefsService);
   readonly ui = inject(SettingsUiService);
@@ -246,7 +246,7 @@ export class SettingsDialogComponent {
     this.error.set(null);
     this.api.deleteSection(id).subscribe({
       next: () => { this.groupConfirm.set(null); this.store.reload(); },
-      error: (e) => this.error.set(e?.error?.error ?? 'Erro ao excluir'),
+      error: (e) => this.error.set(e?.error?.error ?? this.i18n.t('dashboard.deleteError')),
     });
   }
   addGroup(): void {
@@ -256,7 +256,7 @@ export class SettingsDialogComponent {
     const nextOrder = this.store.sections().length;
     this.api.createSection({ name, icon: 'fas fa-folder', color: '#9184d9', order: nextOrder }).subscribe({
       next: () => { this.newGroupName = ''; this.store.reload(); },
-      error: (e) => this.error.set(e?.error?.error ?? 'Erro ao criar grupo'),
+      error: (e) => this.error.set(e?.error?.error ?? this.i18n.t('settings.createGroupError')),
     });
   }
 }

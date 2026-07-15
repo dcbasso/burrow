@@ -1,13 +1,15 @@
 import { Component, inject } from '@angular/core';
 import { AboutUiService } from '../core/about-ui.service';
 import { UiIconComponent } from '../shared/ui-icon.component';
+import { TranslatePipe } from '../core/translate.pipe';
 
 /** Versão exibida no diálogo "Sobre" — fonte única para a UI. */
 export const APP_VERSION = '1.0.0';
 
 interface AboutLink {
   icon: string;
-  label: string;
+  /** Chave i18n do rótulo do link (traduzida no template). */
+  labelKey: string;
   href: string;
   text: string;
 }
@@ -19,7 +21,7 @@ interface AboutLink {
 @Component({
   selector: 'app-about-dialog',
   standalone: true,
-  imports: [UiIconComponent],
+  imports: [UiIconComponent, TranslatePipe],
   template: `
     @if (ui.open()) {
       <div class="dialog-backdrop" (click)="ui.close()">
@@ -29,25 +31,21 @@ interface AboutLink {
               <img class="mark" src="logo.svg" alt="" width="34" height="34" />
               <div>
                 <div class="name">Burrow <span class="ver">v{{ version }}</span></div>
-                <div class="author">Feito por Dante Basso</div>
+                <div class="author">{{ 'about.madeBy' | t }}</div>
               </div>
             </div>
-            <button type="button" class="btn btn-icon btn-ghost" (click)="ui.close()" aria-label="Fechar">
+            <button type="button" class="btn btn-icon btn-ghost" (click)="ui.close()" [attr.aria-label]="'common.close' | t">
               <app-ui-icon name="close" [size]="14" />
             </button>
           </div>
 
-          <p class="desc">
-            Dashboard self-hosted para o seu homelab. Diferente de um dashboard estático, as
-            categorias e os serviços são gerenciados pela própria interface: você adiciona, edita,
-            reordena e escolhe ícones sem mexer em HTML nem reimplantar nada.
-          </p>
+          <p class="desc">{{ 'about.description' | t }}</p>
 
           <div class="links">
             @for (l of links; track l.href) {
               <a class="link" [href]="l.href" target="_blank" rel="noopener noreferrer">
                 <app-ui-icon [name]="l.icon" [size]="16" />
-                <span class="link-label">{{ l.label }}</span>
+                <span class="link-label">{{ l.labelKey | t }}</span>
                 <span class="link-text">{{ l.text }}</span>
                 <app-ui-icon name="external" [size]="13" />
               </a>
@@ -57,8 +55,8 @@ interface AboutLink {
           <hr class="hr" style="margin: 0" />
 
           <div class="license">
-            <span>Licenciado sob <strong>Apache 2.0</strong>.</span>
-            <a [href]="licenseHref" target="_blank" rel="noopener noreferrer">Ver licença <app-ui-icon name="external" [size]="12" /></a>
+            <span>{{ 'about.licensedUnder' | t }} <strong>Apache 2.0</strong>.</span>
+            <a [href]="licenseHref" target="_blank" rel="noopener noreferrer">{{ 'about.viewLicense' | t }} <app-ui-icon name="external" [size]="12" /></a>
           </div>
         </div>
       </div>
@@ -97,11 +95,11 @@ export class AboutDialogComponent {
   readonly licenseHref = 'https://github.com/dcbasso/burrow/blob/main/LICENSE';
 
   readonly links: AboutLink[] = [
-    { icon: 'globe', label: 'Site pessoal', href: 'https://www.dantebasso.com.br/', text: 'dantebasso.com.br' },
-    { icon: 'home', label: 'Página do projeto', href: 'https://www.dantebasso.com.br/opensource/burrow/', text: 'opensource/burrow' },
-    { icon: 'github', label: 'Código-fonte', href: 'https://github.com/dcbasso/burrow', text: 'github.com/dcbasso/burrow' },
-    { icon: 'github', label: 'GitHub', href: 'https://github.com/dcbasso', text: '@dcbasso' },
-    { icon: 'linkedin', label: 'LinkedIn', href: 'https://www.linkedin.com/in/dante-basso-filho', text: 'dante-basso-filho' },
-    { icon: 'mail', label: 'E-mail', href: 'mailto:dcbasso@gmail.com', text: 'dcbasso@gmail.com' },
+    { icon: 'globe', labelKey: 'about.linkPersonalSite', href: 'https://www.dantebasso.com.br/', text: 'dantebasso.com.br' },
+    { icon: 'home', labelKey: 'about.linkProjectPage', href: 'https://www.dantebasso.com.br/opensource/burrow/', text: 'opensource/burrow' },
+    { icon: 'github', labelKey: 'about.linkSource', href: 'https://github.com/dcbasso/burrow', text: 'github.com/dcbasso/burrow' },
+    { icon: 'github', labelKey: 'about.linkGithub', href: 'https://github.com/dcbasso', text: '@dcbasso' },
+    { icon: 'linkedin', labelKey: 'about.linkLinkedin', href: 'https://www.linkedin.com/in/dante-basso-filho', text: 'dante-basso-filho' },
+    { icon: 'mail', labelKey: 'about.linkEmail', href: 'mailto:dcbasso@gmail.com', text: 'dcbasso@gmail.com' },
   ];
 }

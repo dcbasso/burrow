@@ -1,15 +1,17 @@
 import { AfterViewInit, Component, ElementRef, ViewChild, inject } from '@angular/core';
 import { AuthService } from '../core/auth.service';
+import { TranslatePipe } from '../core/translate.pipe';
 
 @Component({
   selector: 'app-login',
   standalone: true,
+  imports: [TranslatePipe],
   template: `
     <div class="login">
       <div class="card">
         <img class="logo" src="logo.svg" alt="Burrow" width="64" height="64" />
         <h1>Burrow</h1>
-        <p>Acesso restrito. Entre com sua conta Google autorizada.</p>
+        <p>{{ 'login.subtitle' | t }}</p>
         <div #btn class="gbtn"></div>
       </div>
     </div>

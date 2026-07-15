@@ -7,6 +7,8 @@ import { EditModeService } from '../core/edit-mode.service';
 import { Section, Service, ServicePort } from '../core/models';
 import { UiIconComponent } from '../shared/ui-icon.component';
 import { IconPickerComponent } from '../icon-picker/icon-picker.component';
+import { I18nService } from '../core/i18n.service';
+import { TranslatePipe } from '../core/translate.pipe';
 
 /**
  * Painel lateral direito do serviço, com DOIS modos:
@@ -19,7 +21,7 @@ import { IconPickerComponent } from '../icon-picker/icon-picker.component';
 @Component({
   selector: 'app-service-drawer',
   standalone: true,
-  imports: [UiIconComponent, FormsModule, IconPickerComponent],
+  imports: [UiIconComponent, FormsModule, IconPickerComponent, TranslatePipe],
   template: `
     <div class="backdrop" [class.open]="!!store.drawer()" (click)="store.closeDrawer()"></div>
     <div class="drawer" [class.open]="!!store.drawer()">
@@ -30,10 +32,10 @@ import { IconPickerComponent } from '../icon-picker/icon-picker.component';
           <div class="scroll">
             <div class="head">
               <div>
-                <div class="card-kicker">Detalhes do serviço</div>
+                <div class="card-kicker">{{ 'drawer.serviceDetails' | t }}</div>
                 <h3 style="margin:2px 0 0">{{ svc.name }}</h3>
               </div>
-              <button type="button" class="btn btn-icon btn-ghost" (click)="store.closeDrawer()" aria-label="Fechar">
+              <button type="button" class="btn btn-icon btn-ghost" (click)="store.closeDrawer()" [attr.aria-label]="'common.close' | t">
                 <app-ui-icon name="close" [size]="14" />
               </button>
             </div>
@@ -47,15 +49,15 @@ import { IconPickerComponent } from '../icon-picker/icon-picker.component';
 
             @if (svc.publicUrl) {
               <div class="row">
-                <span class="label">URL externa (fora de casa)</span>
+                <span class="label">{{ 'drawer.publicUrlLabel' | t }}</span>
                 <div class="urlrow">
                   <span class="val">{{ svc.publicUrl }}</span>
                   <button type="button" class="btn btn-icon btn-ghost" (click)="copy(svc.publicUrl!)"
-                          title="Copiar URL externa" aria-label="Copiar URL externa">
+                          [title]="'drawer.copyPublicUrl' | t" [attr.aria-label]="'drawer.copyPublicUrl' | t">
                     <app-ui-icon name="copy" [size]="14" />
                   </button>
                   <a class="btn btn-icon btn-ghost" [href]="svc.publicUrl" target="_blank" rel="noopener"
-                     title="Abrir em nova aba" aria-label="Abrir URL externa em nova aba">
+                     [title]="'drawer.openNewTab' | t" [attr.aria-label]="'drawer.openPublicUrlAria' | t">
                     <app-ui-icon name="external" [size]="14" />
                   </a>
                 </div>
@@ -63,15 +65,15 @@ import { IconPickerComponent } from '../icon-picker/icon-picker.component';
             }
             @if (svc.localUrl) {
               <div class="row">
-                <span class="label">URL interna (rede local)</span>
+                <span class="label">{{ 'drawer.localUrlLabel' | t }}</span>
                 <div class="urlrow">
                   <span class="val">{{ svc.localUrl }}</span>
                   <button type="button" class="btn btn-icon btn-ghost" (click)="copy(svc.localUrl)"
-                          title="Copiar URL interna" aria-label="Copiar URL interna">
+                          [title]="'drawer.copyLocalUrl' | t" [attr.aria-label]="'drawer.copyLocalUrl' | t">
                     <app-ui-icon name="copy" [size]="14" />
                   </button>
                   <a class="btn btn-icon btn-ghost" [href]="svc.localUrl" target="_blank" rel="noopener"
-                     title="Abrir em nova aba" aria-label="Abrir URL interna em nova aba">
+                     [title]="'drawer.openNewTab' | t" [attr.aria-label]="'drawer.openLocalUrlAria' | t">
                     <app-ui-icon name="external" [size]="14" />
                   </a>
                 </div>
@@ -79,7 +81,7 @@ import { IconPickerComponent } from '../icon-picker/icon-picker.component';
             }
             @if ((svc.ports || []).length) {
               <div class="row">
-                <span class="label">Portas</span>
+                <span class="label">{{ 'drawer.ports' | t }}</span>
                 <div class="ports">
                   @for (p of svc.ports; track p.number) {
                     <span class="port"><b>{{ p.number }}</b> {{ p.name }}</span>
@@ -88,10 +90,10 @@ import { IconPickerComponent } from '../icon-picker/icon-picker.component';
               </div>
             }
             @if (svc.note) {
-              <div class="row"><span class="label">Notas</span><span class="note">{{ svc.note }}</span></div>
+              <div class="row"><span class="label">{{ 'drawer.notes' | t }}</span><span class="note">{{ svc.note }}</span></div>
             }
             @if (!svc.publicUrl && !svc.localUrl && !svc.note && !(svc.ports || []).length) {
-              <p class="text-muted" style="font-size:13.5px">Sem detalhes cadastrados.</p>
+              <p class="text-muted" style="font-size:13.5px">{{ 'drawer.noDetails' | t }}</p>
             }
           </div>
           <!-- Abrir: interno e externo são destinos diferentes, então viram botões
@@ -99,23 +101,23 @@ import { IconPickerComponent } from '../icon-picker/icon-picker.component';
           <div class="foot">
             @if (edit.enabled()) {
               <button type="button" class="btn btn-secondary" (click)="startEdit(svc)">
-                <app-ui-icon name="edit" [size]="14" /> Editar
+                <app-ui-icon name="edit" [size]="14" /> {{ 'common.edit' | t }}
               </button>
             }
             <div class="opens">
               @if (svc.localUrl) {
                 <a class="btn btn-primary" [href]="svc.localUrl" target="_blank" rel="noopener">
-                  <app-ui-icon name="home" [size]="14" /> Abrir interno
+                  <app-ui-icon name="home" [size]="14" /> {{ 'drawer.openInternal' | t }}
                 </a>
               }
               @if (svc.publicUrl) {
                 <a class="btn" [class.btn-primary]="!svc.localUrl" [class.btn-secondary]="!!svc.localUrl"
                    [href]="svc.publicUrl" target="_blank" rel="noopener">
-                  <app-ui-icon name="globe" [size]="14" /> Abrir externo
+                  <app-ui-icon name="globe" [size]="14" /> {{ 'drawer.openExternal' | t }}
                 </a>
               }
               @if (!svc.localUrl && !svc.publicUrl) {
-                <span class="text-muted" style="font-size:13px">Sem URL cadastrada.</span>
+                <span class="text-muted" style="font-size:13px">{{ 'drawer.noUrl' | t }}</span>
               }
             </div>
           </div>
@@ -124,21 +126,21 @@ import { IconPickerComponent } from '../icon-picker/icon-picker.component';
           <div class="scroll">
             <div class="head">
               <div>
-                <div class="card-kicker">{{ d.svc ? 'Editar serviço' : 'Novo serviço' }}</div>
-                <h3 style="margin:2px 0 0">{{ model.name || 'Sem nome' }}</h3>
+                <div class="card-kicker">{{ (d.svc ? 'drawer.editServiceTitle' : 'drawer.newServiceTitle') | t }}</div>
+                <h3 style="margin:2px 0 0">{{ model.name || ('drawer.noName' | t) }}</h3>
               </div>
-              <button type="button" class="btn btn-icon btn-ghost" (click)="store.closeDrawer()" aria-label="Fechar">
+              <button type="button" class="btn btn-icon btn-ghost" (click)="store.closeDrawer()" [attr.aria-label]="'common.close' | t">
                 <app-ui-icon name="close" [size]="14" />
               </button>
             </div>
 
             <div class="field">
-              <label class="lbl">Nome</label>
+              <label class="lbl">{{ 'form.name' | t }}</label>
               <input class="input" [(ngModel)]="model.name" name="name" />
             </div>
 
             <div class="field">
-              <label class="lbl">Categoria</label>
+              <label class="lbl">{{ 'form.category' | t }}</label>
               <select class="input" [(ngModel)]="model.sectionId" name="sectionId">
                 @for (s of store.sections(); track s._id) {
                   <option [value]="s._id">{{ s.name }}</option>
@@ -147,101 +149,101 @@ import { IconPickerComponent } from '../icon-picker/icon-picker.component';
             </div>
 
             <div class="field">
-              <label class="lbl">Ícone do card</label>
+              <label class="lbl">{{ 'form.cardIcon' | t }}</label>
               <app-icon-picker [(value)]="model.icon"></app-icon-picker>
             </div>
 
             <div class="inline">
               <div class="field">
-                <label class="lbl">Cor</label>
+                <label class="lbl">{{ 'form.color' | t }}</label>
                 <input type="color" [(ngModel)]="model.color" name="color" class="color" />
               </div>
               <label class="toggle">
-                <input type="checkbox" [(ngModel)]="model.enabled" name="enabled" /> Ativo
+                <input type="checkbox" [(ngModel)]="model.enabled" name="enabled" /> {{ 'form.active' | t }}
               </label>
             </div>
 
             <div class="field">
-              <label class="lbl">URL pública (opcional)</label>
+              <label class="lbl">{{ 'form.publicUrl' | t }}</label>
               <input class="input" [(ngModel)]="model.publicUrl" name="publicUrl" placeholder="https://..." />
             </div>
 
             <div class="field">
-              <label class="lbl">URL local</label>
+              <label class="lbl">{{ 'form.localUrl' | t }}</label>
               <input class="input" [(ngModel)]="model.localUrl" name="localUrl" placeholder="http://192.168..." />
             </div>
 
             <div class="field">
-              <label class="lbl">Tags (separadas por espaço)</label>
+              <label class="lbl">{{ 'form.tags' | t }}</label>
               <input class="input" [(ngModel)]="tagsText" name="tags" placeholder="vm docker core" />
             </div>
 
             <div class="field">
-              <label class="lbl">Portas (não aparecem no card; entram na busca)</label>
+              <label class="lbl">{{ 'form.portsLabel' | t }}</label>
               @for (p of portRows; track $index) {
                 <div class="portrow">
                   <input class="input" [(ngModel)]="p.name" [name]="'portName' + $index" placeholder="WebUI" />
                   <input class="input num" type="number" [(ngModel)]="p.number" [name]="'portNum' + $index"
                          placeholder="8080" min="1" max="65535" />
                   <button type="button" class="btn btn-icon btn-ghost" (click)="removePort($index)"
-                          aria-label="Remover porta">
+                          [attr.aria-label]="'form.removePort' | t">
                     <app-ui-icon name="close" [size]="12" />
                   </button>
                 </div>
               }
-              <button type="button" class="btn btn-secondary btn-sm" (click)="addPort()">+ Adicionar porta</button>
+              <button type="button" class="btn btn-secondary btn-sm" (click)="addPort()">{{ 'form.addPort' | t }}</button>
             </div>
 
             <div class="field">
-              <label class="lbl">Nota</label>
+              <label class="lbl">{{ 'form.note' | t }}</label>
               <textarea class="input" [(ngModel)]="model.note" name="note" rows="2"></textarea>
             </div>
           </div>
           <div class="foot">
-            <button type="button" class="btn btn-ghost" (click)="cancel(d)">Cancelar</button>
+            <button type="button" class="btn btn-ghost" (click)="cancel(d)">{{ 'common.cancel' | t }}</button>
             <button type="button" class="btn btn-primary btn-block"
                     [disabled]="!model.name || !model.sectionId || !model.icon || saving()"
-                    (click)="saveService(d.svc)">{{ saving() ? 'Salvando…' : 'Salvar' }}</button>
+                    (click)="saveService(d.svc)">{{ (saving() ? 'common.saving' : 'common.save') | t }}</button>
           </div>
         } @else if (d.kind === 'section-form') {
           <!-- ── CATEGORIA: NOVA / EDIÇÃO ── -->
           <div class="scroll">
             <div class="head">
               <div>
-                <div class="card-kicker">{{ d.sec ? 'Editar categoria' : 'Nova categoria' }}</div>
-                <h3 style="margin:2px 0 0">{{ sectionModel.name || 'Sem nome' }}</h3>
+                <div class="card-kicker">{{ (d.sec ? 'drawer.editSectionTitle' : 'drawer.newSectionTitle') | t }}</div>
+                <h3 style="margin:2px 0 0">{{ sectionModel.name || ('drawer.noName' | t) }}</h3>
               </div>
-              <button type="button" class="btn btn-icon btn-ghost" (click)="store.closeDrawer()" aria-label="Fechar">
+              <button type="button" class="btn btn-icon btn-ghost" (click)="store.closeDrawer()" [attr.aria-label]="'common.close' | t">
                 <app-ui-icon name="close" [size]="14" />
               </button>
             </div>
 
             <div class="field">
-              <label class="lbl">Nome</label>
+              <label class="lbl">{{ 'form.name' | t }}</label>
               <input class="input" [(ngModel)]="sectionModel.name" name="secName" />
             </div>
 
             <div class="field">
-              <label class="lbl">Ícone</label>
+              <label class="lbl">{{ 'form.icon' | t }}</label>
               <app-icon-picker [(value)]="sectionModel.icon"></app-icon-picker>
             </div>
 
             <div class="inline">
               <div class="field">
-                <label class="lbl">Cor</label>
+                <label class="lbl">{{ 'form.color' | t }}</label>
                 <input type="color" [(ngModel)]="sectionModel.color" name="secColor" class="color" />
               </div>
               <div class="field">
-                <label class="lbl">Ordem</label>
+                <label class="lbl">{{ 'form.order' | t }}</label>
                 <input class="input num" type="number" [(ngModel)]="sectionModel.order" name="secOrder" />
               </div>
             </div>
           </div>
           <div class="foot">
-            <button type="button" class="btn btn-ghost" (click)="store.closeDrawer()">Cancelar</button>
+            <button type="button" class="btn btn-ghost" (click)="store.closeDrawer()">{{ 'common.cancel' | t }}</button>
             <button type="button" class="btn btn-primary btn-block"
                     [disabled]="!sectionModel.name || !sectionModel.icon || saving()"
-                    (click)="saveSection(d.sec)">{{ saving() ? 'Salvando…' : 'Salvar' }}</button>
+                    (click)="saveSection(d.sec)">{{ (saving() ? 'common.saving' : 'common.save') | t }}</button>
           </div>
         }
       }
@@ -300,6 +302,7 @@ export class ServiceDrawerComponent {
   readonly edit = inject(EditModeService);
   private api = inject(ApiService);
   private snack = inject(MatSnackBar);
+  private i18n = inject(I18nService);
 
   model: Partial<Service> = {};
   sectionModel: Partial<Section> = {};
@@ -372,13 +375,13 @@ export class ServiceDrawerComponent {
     req.subscribe({
       next: () => {
         this.saving.set(false);
-        this.snack.open(svc ? 'Serviço atualizado' : 'Serviço criado');
+        this.snack.open(this.i18n.t(svc ? 'drawer.serviceUpdated' : 'drawer.serviceCreated'));
         this.store.closeDrawer();
         this.store.reload();
       },
       error: () => {
         this.saving.set(false);
-        this.snack.open('Falha ao salvar', 'ok', { duration: 4000 });
+        this.snack.open(this.i18n.t('common.saveFailed'), 'ok', { duration: 4000 });
       },
     });
   }
@@ -391,13 +394,13 @@ export class ServiceDrawerComponent {
     req.subscribe({
       next: () => {
         this.saving.set(false);
-        this.snack.open(sec ? 'Categoria atualizada' : 'Categoria criada');
+        this.snack.open(this.i18n.t(sec ? 'drawer.sectionUpdated' : 'drawer.sectionCreated'));
         this.store.closeDrawer();
         this.store.reload();
       },
       error: () => {
         this.saving.set(false);
-        this.snack.open('Falha ao salvar', 'ok', { duration: 4000 });
+        this.snack.open(this.i18n.t('common.saveFailed'), 'ok', { duration: 4000 });
       },
     });
   }
@@ -421,9 +424,9 @@ export class ServiceDrawerComponent {
         document.execCommand('copy');
         ta.remove();
       }
-      this.snack.open('Link copiado', undefined, { duration: 2000 });
+      this.snack.open(this.i18n.t('drawer.linkCopied'), undefined, { duration: 2000 });
     } catch {
-      this.snack.open('Não foi possível copiar', 'ok', { duration: 4000 });
+      this.snack.open(this.i18n.t('drawer.copyFailed'), 'ok', { duration: 4000 });
     }
   }
 }

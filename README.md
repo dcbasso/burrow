@@ -8,6 +8,9 @@ A dashboard for the services you host at home. Unlike a static dashboard, the se
 and services are managed from the interface itself: you add, edit, reorder and pick icons
 without touching HTML or redeploying anything.
 
+The interface is available in English, Portuguese and Spanish — it follows your browser's
+language and can be switched anytime under Settings → Language.
+
 ## Stack
 
 - **Frontend** — Angular (standalone components), served by Nginx.
