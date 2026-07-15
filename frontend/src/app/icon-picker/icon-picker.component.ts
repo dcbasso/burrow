@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { ICON_CATALOG } from './icons';
+import { TranslatePipe } from '../core/translate.pipe';
 
 /**
  * Seletor de ícone: mostra o ícone atual, um campo de busca e uma grade clicável
@@ -12,15 +13,15 @@ import { ICON_CATALOG } from './icons';
 @Component({
   selector: 'app-icon-picker',
   standalone: true,
-  imports: [FormsModule, MatFormFieldModule, MatInputModule],
+  imports: [FormsModule, MatFormFieldModule, MatInputModule, TranslatePipe],
   template: `
     <div class="picker">
       <div class="preview">
         <i [class]="value || 'fas fa-question'"></i>
-        <span class="cls">{{ value || 'nenhum ícone selecionado' }}</span>
+        <span class="cls">{{ value || ('iconPicker.none' | t) }}</span>
       </div>
       <mat-form-field appearance="outline" class="search">
-        <mat-label>Buscar ícone</mat-label>
+        <mat-label>{{ 'iconPicker.search' | t }}</mat-label>
         <input matInput [ngModel]="query()" (ngModelChange)="query.set($event)" placeholder="ex: server, docker, chart" />
       </mat-form-field>
       <div class="grid">
@@ -31,7 +32,7 @@ import { ICON_CATALOG } from './icons';
           </button>
         }
         @if (filtered().length === 0) {
-          <span class="empty">Nada encontrado.</span>
+          <span class="empty">{{ 'iconPicker.empty' | t }}</span>
         }
       </div>
     </div>

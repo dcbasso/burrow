@@ -7,30 +7,32 @@ import { EditModeService } from '../core/edit-mode.service';
 import { PrefsService } from '../core/prefs.service';
 import { Section, Service } from '../core/models';
 import { UiIconComponent } from '../shared/ui-icon.component';
+import { I18nService } from '../core/i18n.service';
+import { TranslatePipe } from '../core/translate.pipe';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [UiIconComponent, DragDropModule],
+  imports: [UiIconComponent, DragDropModule, TranslatePipe],
   template: `
     @if (edit.enabled()) {
       <div class="actions">
         <button type="button" class="btn btn-primary" (click)="newService()">
-          <app-ui-icon name="plus" [size]="14" /> Novo serviço
+          <app-ui-icon name="plus" [size]="14" /> {{ 'dashboard.newService' | t }}
         </button>
         <button type="button" class="btn btn-secondary" (click)="newSection()">
-          <app-ui-icon name="folder" [size]="14" /> Nova categoria
+          <app-ui-icon name="folder" [size]="14" /> {{ 'dashboard.newSection' | t }}
         </button>
       </div>
     }
 
     @if (store.loading()) {
-      <p class="empty">Carregando…</p>
+      <p class="empty">{{ 'common.loading' | t }}</p>
     } @else if (store.sections().length === 0) {
       <p class="empty">
-        Nenhuma categoria ainda.
-        @if (edit.enabled()) { Crie a primeira com "Nova categoria". }
-        @else { Desbloqueie a edição (cadeado) para começar. }
+        {{ 'dashboard.noSections' | t }}
+        @if (edit.enabled()) { {{ 'dashboard.noSectionsEditHint' | t }} }
+        @else { {{ 'dashboard.noSectionsLockedHint' | t }} }
       </p>
     }
 
@@ -41,7 +43,7 @@ import { UiIconComponent } from '../shared/ui-icon.component';
           <div class="group-block" cdkDrag [cdkDragDisabled]="!edit.enabled()" [class.editing]="edit.enabled()">
             <div class="group-head">
               @if (edit.enabled()) {
-                <span class="grip" cdkDragHandle title="Arrastar categoria"><app-ui-icon name="grip" [size]="15" /></span>
+                <span class="grip" cdkDragHandle [title]="'dashboard.dragSection' | t"><app-ui-icon name="grip" [size]="15" /></span>
               }
               <span class="group-rule"></span>
               <div class="icon-tile" [class.colored]="prefs.coloredIcons()"
@@ -52,10 +54,10 @@ import { UiIconComponent } from '../shared/ui-icon.component';
               <span class="tag tag-neutral">{{ g.items.length }}</span>
               <span class="group-rule"></span>
               @if (edit.enabled()) {
-                <button type="button" class="btn btn-icon btn-ghost" (click)="editSection(g.section)" title="Editar categoria">
+                <button type="button" class="btn btn-icon btn-ghost" (click)="editSection(g.section)" [title]="'dashboard.editSection' | t">
                   <app-ui-icon name="edit" [size]="14" />
                 </button>
-                <button type="button" class="btn btn-icon btn-ghost" (click)="deleteSection(g.section)" title="Excluir categoria">
+                <button type="button" class="btn btn-icon btn-ghost" (click)="deleteSection(g.section)" [title]="'dashboard.deleteSection' | t">
                   <app-ui-icon name="trash" [size]="14" />
                 </button>
               }
@@ -68,7 +70,7 @@ import { UiIconComponent } from '../shared/ui-icon.component';
                      [class.with-ip]="prefs.showIp()" [style.--ci]="svc.color"
                      cdkDrag [cdkDragDisabled]="!edit.enabled()" (click)="store.viewService(svc)">
                   @if (edit.enabled()) {
-                    <span class="card-grip" cdkDragHandle title="Arrastar serviço" (click)="$event.stopPropagation()">
+                    <span class="card-grip" cdkDragHandle [title]="'dashboard.dragService' | t" (click)="$event.stopPropagation()">
                       <app-ui-icon name="grip" [size]="15" />
                     </span>
                   }
@@ -93,20 +95,20 @@ import { UiIconComponent } from '../shared/ui-icon.component';
 
                   @if (edit.enabled()) {
                     <div class="card-actions" (click)="$event.stopPropagation()">
-                      <button type="button" class="btn btn-icon btn-ghost" (click)="move(g, i, -1)" [disabled]="i === 0" title="Mover pra cima">
+                      <button type="button" class="btn btn-icon btn-ghost" (click)="move(g, i, -1)" [disabled]="i === 0" [title]="'dashboard.moveUp' | t">
                         <app-ui-icon name="up" [size]="14" />
                       </button>
-                      <button type="button" class="btn btn-icon btn-ghost" (click)="move(g, i, 1)" [disabled]="i === count - 1" title="Mover pra baixo">
+                      <button type="button" class="btn btn-icon btn-ghost" (click)="move(g, i, 1)" [disabled]="i === count - 1" [title]="'dashboard.moveDown' | t">
                         <app-ui-icon name="down" [size]="14" />
                       </button>
                       <button type="button" class="btn btn-icon btn-ghost" (click)="toggleEnabled(svc)"
-                              [class.on]="svc.enabled" [title]="svc.enabled ? 'Desativar' : 'Ativar'">
+                              [class.on]="svc.enabled" [title]="(svc.enabled ? 'common.disable' : 'common.enable') | t">
                         <app-ui-icon name="power" [size]="14" />
                       </button>
-                      <button type="button" class="btn btn-icon btn-ghost" (click)="editService(svc)" title="Editar">
+                      <button type="button" class="btn btn-icon btn-ghost" (click)="editService(svc)" [title]="'common.edit' | t">
                         <app-ui-icon name="edit" [size]="14" />
                       </button>
-                      <button type="button" class="btn btn-icon btn-ghost" (click)="deleteService(svc)" title="Excluir">
+                      <button type="button" class="btn btn-icon btn-ghost" (click)="deleteService(svc)" [title]="'common.delete' | t">
                         <app-ui-icon name="trash" [size]="14" />
                       </button>
                     </div>
@@ -118,14 +120,14 @@ import { UiIconComponent } from '../shared/ui-icon.component';
         }
       </div>
       @if (!store.loading() && store.visibleGroups().length === 0 && store.sections().length > 0) {
-        <div class="empty">Nenhum serviço encontrado.</div>
+        <div class="empty">{{ 'dashboard.noServices' | t }}</div>
       }
     }
 
     <!-- LISTA -->
     @if (prefs.view() === 'list') {
       <table class="table" style="margin-top: var(--space-4)">
-        <thead><tr><th>Serviço</th><th>Grupo</th><th>Tags</th><th>Endereços</th><th>Portas</th><th></th></tr></thead>
+        <thead><tr><th>{{ 'table.service' | t }}</th><th>{{ 'table.group' | t }}</th><th>{{ 'table.tags' | t }}</th><th>{{ 'table.addresses' | t }}</th><th>{{ 'table.ports' | t }}</th><th></th></tr></thead>
         <tbody>
           @for (r of store.flat(); track r.svc._id) {
             <tr class="row-clickable" [class.off]="!r.svc.enabled" [style.--ci]="r.svc.color"
@@ -146,10 +148,10 @@ import { UiIconComponent } from '../shared/ui-icon.component';
                    O card mostra só um endereço porque não tem espaço; aqui não é o caso. -->
               <td>
                 @if (r.svc.localUrl) {
-                  <div class="addr"><span class="addr-kind">interna</span><span class="mono">{{ r.svc.localUrl }}</span></div>
+                  <div class="addr"><span class="addr-kind">{{ 'common.internal' | t }}</span><span class="mono">{{ r.svc.localUrl }}</span></div>
                 }
                 @if (r.svc.publicUrl) {
-                  <div class="addr"><span class="addr-kind">externa</span><span class="mono">{{ r.svc.publicUrl }}</span></div>
+                  <div class="addr"><span class="addr-kind">{{ 'common.external' | t }}</span><span class="mono">{{ r.svc.publicUrl }}</span></div>
                 }
                 @if (!r.svc.localUrl && !r.svc.publicUrl) { <span class="text-muted">—</span> }
               </td>
@@ -168,13 +170,13 @@ import { UiIconComponent } from '../shared/ui-icon.component';
                 <div class="row-actions" (click)="$event.stopPropagation()">
                   @if (edit.enabled()) {
                     <button type="button" class="btn btn-icon btn-ghost" (click)="toggleEnabled(r.svc)"
-                            [class.on]="r.svc.enabled" [title]="r.svc.enabled ? 'Desativar' : 'Ativar'">
+                            [class.on]="r.svc.enabled" [title]="(r.svc.enabled ? 'common.disable' : 'common.enable') | t">
                       <app-ui-icon name="power" [size]="13" />
                     </button>
-                    <button type="button" class="btn btn-icon btn-ghost" (click)="editService(r.svc)" title="Editar">
+                    <button type="button" class="btn btn-icon btn-ghost" (click)="editService(r.svc)" [title]="'common.edit' | t">
                       <app-ui-icon name="edit" [size]="13" />
                     </button>
-                    <button type="button" class="btn btn-icon btn-ghost" (click)="deleteService(r.svc)" title="Excluir">
+                    <button type="button" class="btn btn-icon btn-ghost" (click)="deleteService(r.svc)" [title]="'common.delete' | t">
                       <app-ui-icon name="trash" [size]="13" />
                     </button>
                   }
@@ -182,13 +184,13 @@ import { UiIconComponent } from '../shared/ui-icon.component';
                        como no drawer. Um só botão acabaria sempre preferindo o externo. -->
                   @if (r.svc.localUrl) {
                     <a class="btn btn-icon btn-secondary" [href]="r.svc.localUrl" target="_blank" rel="noopener"
-                       title="Abrir interno (rede local)" aria-label="Abrir interno">
+                       [title]="'dashboard.openInternal' | t" [attr.aria-label]="'dashboard.openInternalAria' | t">
                       <app-ui-icon name="home" [size]="13" />
                     </a>
                   }
                   @if (r.svc.publicUrl) {
                     <a class="btn btn-icon btn-secondary" [href]="r.svc.publicUrl" target="_blank" rel="noopener"
-                       title="Abrir externo (fora de casa)" aria-label="Abrir externo">
+                       [title]="'dashboard.openExternal' | t" [attr.aria-label]="'dashboard.openExternalAria' | t">
                       <app-ui-icon name="globe" [size]="13" />
                     </a>
                   }
@@ -199,7 +201,7 @@ import { UiIconComponent } from '../shared/ui-icon.component';
         </tbody>
       </table>
       @if (!store.loading() && store.flat().length === 0) {
-        <div class="empty">Nenhum serviço encontrado.</div>
+        <div class="empty">{{ 'dashboard.noServices' | t }}</div>
       }
     }
   `,
@@ -337,6 +339,7 @@ import { UiIconComponent } from '../shared/ui-icon.component';
 export class DashboardComponent implements OnInit {
   private api = inject(ApiService);
   private snack = inject(MatSnackBar);
+  private i18n = inject(I18nService);
   readonly store = inject(DashboardStore);
   readonly edit = inject(EditModeService);
   readonly prefs = inject(PrefsService);
@@ -412,7 +415,7 @@ export class DashboardComponent implements OnInit {
     const payload = list.map((s, i) => ({ _id: s._id, order: i }));
     this.store.sections.set(list.map((s, i) => ({ ...s, order: i })));
     this.api.reorderSections(payload).subscribe({
-      error: () => { this.snack.open('Falha ao salvar a ordem das categorias', 'ok', { duration: 4000 }); this.store.reload(); },
+      error: () => { this.snack.open(this.i18n.t('dashboard.reorderSectionsError'), 'ok', { duration: 4000 }); this.store.reload(); },
     });
   }
 
@@ -442,7 +445,7 @@ export class DashboardComponent implements OnInit {
       all.map((s) => (orderById.has(s._id) ? { ...s, order: orderById.get(s._id)! } : s)),
     );
     this.api.reorderServices(payload).subscribe({
-      error: () => { this.snack.open('Falha ao salvar a ordem', 'ok', { duration: 4000 }); this.store.reload(); },
+      error: () => { this.snack.open(this.i18n.t('dashboard.reorderError'), 'ok', { duration: 4000 }); this.store.reload(); },
     });
   }
 
@@ -451,7 +454,7 @@ export class DashboardComponent implements OnInit {
   // Material ficava apertado demais pros campos de porta.
   newService(): void {
     if (this.store.sections().length === 0) {
-      this.snack.open('Crie uma categoria antes.', 'ok', { duration: 3000 });
+      this.snack.open(this.i18n.t('dashboard.createSectionFirst'), 'ok', { duration: 3000 });
       return;
     }
     this.store.newService();
@@ -462,8 +465,8 @@ export class DashboardComponent implements OnInit {
   }
 
   deleteService(svc: Service): void {
-    if (!confirm(`Excluir "${svc.name}"?`)) return;
-    this.api.deleteService(svc._id).subscribe(() => { this.snack.open('Serviço excluído'); this.store.reload(); });
+    if (!confirm(this.i18n.t('dashboard.confirmDeleteService', { name: svc.name }))) return;
+    this.api.deleteService(svc._id).subscribe(() => { this.snack.open(this.i18n.t('dashboard.serviceDeleted')); this.store.reload(); });
   }
 
   /** Liga/desliga o serviço sem abrir o formulário. Desligado o card fica apagado
@@ -471,7 +474,7 @@ export class DashboardComponent implements OnInit {
   toggleEnabled(svc: Service): void {
     const enabled = !svc.enabled;
     this.api.updateService(svc._id, { enabled }).subscribe(() => {
-      this.snack.open(enabled ? `"${svc.name}" ativado` : `"${svc.name}" desativado`);
+      this.snack.open(this.i18n.t(enabled ? 'dashboard.serviceEnabled' : 'dashboard.serviceDisabled', { name: svc.name }));
       this.store.reload();
     });
   }
@@ -486,10 +489,10 @@ export class DashboardComponent implements OnInit {
   }
 
   deleteSection(sec: Section): void {
-    if (!confirm(`Excluir a categoria "${sec.name}"?`)) return;
+    if (!confirm(this.i18n.t('dashboard.confirmDeleteSection', { name: sec.name }))) return;
     this.api.deleteSection(sec._id).subscribe({
-      next: () => { this.snack.open('Categoria excluída'); this.store.reload(); },
-      error: (e) => this.snack.open(e?.error?.error ?? 'Erro ao excluir', 'ok', { duration: 4000 }),
+      next: () => { this.snack.open(this.i18n.t('dashboard.sectionDeleted')); this.store.reload(); },
+      error: (e) => this.snack.open(e?.error?.error ?? this.i18n.t('dashboard.deleteError'), 'ok', { duration: 4000 }),
     });
   }
 }

@@ -11,13 +11,14 @@ import { ServiceDrawerComponent } from './dashboard/service-drawer.component';
 import { SettingsDialogComponent } from './dashboard/settings-dialog.component';
 import { AboutDialogComponent } from './dashboard/about-dialog.component';
 import { UiIconComponent } from './shared/ui-icon.component';
+import { TranslatePipe } from './core/translate.pipe';
 
 @Component({
   selector: 'app-root',
   standalone: true,
   imports: [
     LoginComponent, DashboardComponent, ServiceDrawerComponent,
-    SettingsDialogComponent, AboutDialogComponent, UiIconComponent,
+    SettingsDialogComponent, AboutDialogComponent, UiIconComponent, TranslatePipe,
   ],
   template: `
     @if (!auth.authed()) {
@@ -28,8 +29,8 @@ import { UiIconComponent } from './shared/ui-icon.component';
         <div class="topbar">
           <button type="button" class="icon-btn" [class.active]="prefs.sidebarOpen()"
                   (click)="prefs.toggleSidebar()"
-                  [title]="prefs.sidebarOpen() ? 'Recolher menu' : 'Expandir menu'"
-                  aria-label="Alternar menu lateral">
+                  [title]="prefs.sidebarOpen() ? ('topbar.collapseMenu' | t) : ('topbar.expandMenu' | t)"
+                  [attr.aria-label]="'topbar.toggleSidebarAria' | t">
             <app-ui-icon name="sidebar" [size]="16" />
           </button>
           <div class="brand">
@@ -39,12 +40,12 @@ import { UiIconComponent } from './shared/ui-icon.component';
 
           <div class="search" [class.disabled]="edit.enabled()" (click)="focusSearch()">
             <app-ui-icon name="search" [size]="15" />
-            <input #searchInput type="text" class="search-input" placeholder="Buscar servidor, roteador, serviço…"
-                   aria-label="Buscar serviços" [value]="store.query()"
+            <input #searchInput type="text" class="search-input" [placeholder]="'topbar.searchPlaceholder' | t"
+                   [attr.aria-label]="'topbar.searchAria' | t" [value]="store.query()"
                    (input)="store.query.set($any($event.target).value)" />
             @if (store.query()) {
               <button type="button" class="search-clear" (click)="clearSearch(); $event.stopPropagation()"
-                      title="Limpar busca" aria-label="Limpar busca">
+                      [title]="'topbar.clearSearch' | t" [attr.aria-label]="'topbar.clearSearch' | t">
                 <app-ui-icon name="close" [size]="12" />
               </button>
             } @else {
@@ -53,24 +54,24 @@ import { UiIconComponent } from './shared/ui-icon.component';
           </div>
           <span class="spacer"></span>
 
-          <div class="seg" [class.disabled]="edit.enabled()" role="radiogroup" aria-label="Visualização">
+          <div class="seg" [class.disabled]="edit.enabled()" role="radiogroup" [attr.aria-label]="'topbar.viewAria' | t">
             <label class="seg-opt">
               <input type="radio" name="view" [checked]="prefs.view() === 'grid'" (change)="prefs.setView('grid')" />
-              <app-ui-icon name="grid" [size]="13" /> Grade
+              <app-ui-icon name="grid" [size]="13" /> {{ 'topbar.viewGrid' | t }}
             </label>
             <label class="seg-opt">
               <input type="radio" name="view" [checked]="prefs.view() === 'list'" (change)="prefs.setView('list')" />
-              <app-ui-icon name="list" [size]="13" /> Lista
+              <app-ui-icon name="list" [size]="13" /> {{ 'topbar.viewList' | t }}
             </label>
           </div>
 
           <button type="button" class="icon-btn" [class.active]="edit.enabled()" (click)="edit.toggle()"
-                  [title]="edit.enabled() ? 'Bloquear edição' : 'Modo de edição'" aria-label="Modo de edição">
+                  [title]="edit.enabled() ? ('topbar.lockEdit' | t) : ('topbar.editMode' | t)" [attr.aria-label]="'topbar.editMode' | t">
             <app-ui-icon [name]="edit.enabled() ? 'unlock' : 'lock'" [size]="16" />
           </button>
 
           <div class="menu-wrap">
-            <button type="button" class="avatar-btn" (click)="toggleProfile()" aria-label="Perfil">
+            <button type="button" class="avatar-btn" (click)="toggleProfile()" [attr.aria-label]="'topbar.profileAria' | t">
               @if (auth.picture()) {
                 <img [src]="auth.picture()!" alt="" referrerpolicy="no-referrer" />
               } @else {
@@ -96,15 +97,15 @@ import { UiIconComponent } from './shared/ui-icon.component';
                 <hr class="hr" style="margin: 0" />
                 <div class="profile-actions">
                   <button type="button" class="menu-item" (click)="openSettings()">
-                    <app-ui-icon name="gear" [size]="15" /> Configurações
+                    <app-ui-icon name="gear" [size]="15" /> {{ 'menu.settings' | t }}
                   </button>
                   <button type="button" class="menu-item" (click)="openAbout()">
-                    <app-ui-icon name="info" [size]="15" /> Sobre
+                    <app-ui-icon name="info" [size]="15" /> {{ 'menu.about' | t }}
                   </button>
                 </div>
                 <hr class="hr" style="margin: 0" />
                 <button type="button" class="btn btn-secondary btn-block" (click)="auth.logout()">
-                  <app-ui-icon name="logout" [size]="14" /> Sair
+                  <app-ui-icon name="logout" [size]="14" /> {{ 'menu.logout' | t }}
                 </button>
               </div>
             }
@@ -114,8 +115,8 @@ import { UiIconComponent } from './shared/ui-icon.component';
         <!-- BANNER edição -->
         @if (edit.enabled()) {
           <div class="edit-banner">
-            <span class="edit-banner-text">Modo de edição ativo — adicione, edite e reordene serviços e categorias.</span>
-            <button type="button" class="btn btn-primary" (click)="edit.toggle()">Concluir edição</button>
+            <span class="edit-banner-text">{{ 'editBanner.text' | t }}</span>
+            <button type="button" class="btn btn-primary" (click)="edit.toggle()">{{ 'editBanner.done' | t }}</button>
           </div>
         }
 
@@ -124,7 +125,7 @@ import { UiIconComponent } from './shared/ui-icon.component';
           <div class="sidebar" [class.disabled]="edit.enabled()" [class.collapsed]="!prefs.sidebarOpen()">
             <div class="sidebar-item" [class.active]="store.activeGroup() === 'Todos'" (click)="store.activeGroup.set('Todos')">
               <app-ui-icon name="grid" [size]="14" />
-              <span>Todos</span>
+              <span>{{ 'sidebar.all' | t }}</span>
               <span class="count">{{ store.totalCount() }}</span>
             </div>
             @for (g of store.grouped(); track g.section._id) {

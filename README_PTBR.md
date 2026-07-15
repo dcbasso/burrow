@@ -8,6 +8,9 @@ Um painel para os serviços que você hospeda em casa. Diferente de um dashboard
 as seções e os serviços são cadastráveis pela própria interface: você adiciona, edita,
 reordena e escolhe ícones sem mexer em HTML nem redeployar nada.
 
+A interface está disponível em inglês, português e espanhol — segue o idioma do navegador
+e pode ser trocada a qualquer momento em Configurações → Idioma.
+
 ## Stack
 
 - **Frontend** — Angular (standalone components), servido por Nginx.
