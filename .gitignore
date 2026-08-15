@@ -18,3 +18,4 @@ dist/
 
 # Deploy real (config pessoal: domínio, e-mails, Client ID). Nunca vai pro repo.
 /prod/
+/deploy/

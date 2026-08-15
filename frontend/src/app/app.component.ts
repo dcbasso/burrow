@@ -27,9 +27,9 @@ import { TranslatePipe } from './core/translate.pipe';
       <div class="om-dash" [attr.data-theme]="prefs.theme()" [attr.data-accent-color]="prefs.accent()">
         <!-- TOPBAR -->
         <div class="topbar">
-          <button type="button" class="icon-btn" [class.active]="prefs.sidebarOpen()"
-                  (click)="prefs.toggleSidebar()"
-                  [title]="prefs.sidebarOpen() ? ('topbar.collapseMenu' | t) : ('topbar.expandMenu' | t)"
+          <button type="button" class="icon-btn" [class.active]="sidebarVisible()"
+                  (click)="toggleSidebar()"
+                  [title]="sidebarVisible() ? ('topbar.collapseMenu' | t) : ('topbar.expandMenu' | t)"
                   [attr.aria-label]="'topbar.toggleSidebarAria' | t">
             <app-ui-icon name="sidebar" [size]="16" />
           </button>
@@ -122,15 +122,18 @@ import { TranslatePipe } from './core/translate.pipe';
 
         <!-- LAYOUT -->
         <div class="layout">
-          <div class="sidebar" [class.disabled]="edit.enabled()" [class.collapsed]="!prefs.sidebarOpen()">
-            <div class="sidebar-item" [class.active]="store.activeGroup() === 'Todos'" (click)="store.activeGroup.set('Todos')">
+          @if (isMobile() && sidebarVisible()) {
+            <div class="sidebar-catcher" (click)="closeSidebarMobile()"></div>
+          }
+          <div class="sidebar" [class.disabled]="edit.enabled()" [class.collapsed]="!sidebarVisible()">
+            <div class="sidebar-item" [class.active]="store.activeGroup() === 'Todos'" (click)="selectGroup('Todos')">
               <app-ui-icon name="grid" [size]="14" />
               <span>{{ 'sidebar.all' | t }}</span>
               <span class="count">{{ store.totalCount() }}</span>
             </div>
             @for (g of store.grouped(); track g.section._id) {
               <div class="sidebar-item" [class.active]="store.activeGroup() === g.section._id"
-                   (click)="store.activeGroup.set(g.section._id)">
+                   (click)="selectGroup(g.section._id)">
                 <i [class]="g.section.icon" class="sb-fa"
                    [style.color]="prefs.coloredIcons() ? g.section.color : null"></i>
                 <span>{{ g.section.name }}</span>
@@ -210,7 +213,8 @@ import { TranslatePipe } from './core/translate.pipe';
       font-size: 13px; }
     .edit-banner-text { flex: 1; }
 
-    .layout { display: flex; align-items: stretch; }
+    .layout { display: flex; align-items: stretch; position: relative; }
+    .sidebar-catcher { position: fixed; inset: 0; z-index: 29; }
     .sidebar { width: 232px; flex: none; border-right: 1px solid var(--color-divider);
       padding: var(--space-4) var(--space-3); display: flex; flex-direction: column; gap: 2px;
       overflow: hidden; transition: width .18s ease, padding .18s ease, opacity .18s ease; }
@@ -233,6 +237,9 @@ import { TranslatePipe } from './core/translate.pipe';
     @media (max-width: 720px) {
       .kbd { display: none; }
       .body { width: auto; margin: 0; padding: var(--space-4); }
+      .topbar { flex-wrap: wrap; gap: var(--space-3); }
+      .search { order: 5; flex-basis: 100%; max-width: none; }
+      .spacer { display: none; }
       /* No mobile o menu vira overlay flutuante controlado pelo mesmo toggle. */
       .sidebar { position: absolute; z-index: 30; top: 0; bottom: 0; left: 0; width: 232px;
         background: var(--color-surface); box-shadow: var(--shadow-lg); }
@@ -254,8 +261,31 @@ export class AppComponent implements OnInit {
 
   readonly initial = computed(() => (this.auth.email()?.[0] ?? '?').toUpperCase());
 
+  // Estado do menu lateral no mobile: overlay efêmero (nunca persistido), sempre
+  // começa fechado, independente da preferência de desktop salva em prefs.sidebarOpen.
+  private readonly mobileQuery = window.matchMedia('(max-width: 720px)');
+  readonly isMobile = signal(this.mobileQuery.matches);
+  readonly mobileSidebarOpen = signal(false);
+  readonly sidebarVisible = computed(() =>
+    this.isMobile() ? this.mobileSidebarOpen() : this.prefs.sidebarOpen()
+  );
+
+  constructor() {
+    this.mobileQuery.addEventListener('change', (e) => this.isMobile.set(e.matches));
+  }
+
   ngOnInit(): void {
     this.auth.init();
+  }
+
+  toggleSidebar(): void {
+    if (this.isMobile()) this.mobileSidebarOpen.update((v) => !v);
+    else this.prefs.toggleSidebar();
+  }
+  closeSidebarMobile(): void { this.mobileSidebarOpen.set(false); }
+  selectGroup(id: string): void {
+    this.store.activeGroup.set(id);
+    if (this.isMobile()) this.closeSidebarMobile();
   }
 
   toggleProfile(): void { this.profileOpen.update((v) => !v); }
@@ -277,6 +307,7 @@ export class AppComponent implements OnInit {
     } else if (e.key === 'Escape') {
       if (this.store.query()) this.clearSearch();
       this.store.closeDrawer();
+      if (this.isMobile()) this.closeSidebarMobile();
     }
   }
 }

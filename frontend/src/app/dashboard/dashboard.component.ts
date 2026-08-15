@@ -126,6 +126,7 @@ import { TranslatePipe } from '../core/translate.pipe';
 
     <!-- LISTA -->
     @if (prefs.view() === 'list') {
+      <div class="table-scroll">
       <table class="table" style="margin-top: var(--space-4)">
         <thead><tr><th>{{ 'table.service' | t }}</th><th>{{ 'table.group' | t }}</th><th>{{ 'table.tags' | t }}</th><th>{{ 'table.addresses' | t }}</th><th>{{ 'table.ports' | t }}</th><th></th></tr></thead>
         <tbody>
@@ -200,6 +201,7 @@ import { TranslatePipe } from '../core/translate.pipe';
           }
         </tbody>
       </table>
+      </div>
       @if (!store.loading() && store.flat().length === 0) {
         <div class="empty">{{ 'dashboard.noServices' | t }}</div>
       }
@@ -207,6 +209,7 @@ import { TranslatePipe } from '../core/translate.pipe';
   `,
   styles: [`
     .actions { display: flex; gap: var(--space-3); margin-bottom: var(--space-6); }
+    .table-scroll { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     .empty { padding: var(--space-8) 0; text-align: center; font-size: 13.5px;
       color: color-mix(in srgb, var(--color-text) 45%, transparent); }
     .spacer { flex: 1; }
