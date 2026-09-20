@@ -1,10 +1,18 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { isValidObjectId } from 'mongoose';
-import { ServiceModel } from '../models/service.model';
+import { isValidObjectId, HydratedDocument } from 'mongoose';
+import { ServiceModel, Service } from '../models/service.model';
 import { SectionModel } from '../models/section.model';
+import { encryptSecret, decryptSecret } from '../crypto';
 
 export const servicesRouter = Router();
+
+const credentialInput = z.object({
+  _id: z.string().optional(), // presente = credencial existente (mantém se password vier vazia)
+  label: z.string().min(1),
+  username: z.string().min(1),
+  password: z.string().optional(),
+});
 
 const serviceBody = z.object({
   name: z.string().min(1),
@@ -15,6 +23,7 @@ const serviceBody = z.object({
   ports: z
     .array(z.object({ name: z.string().min(1), number: z.number().int().min(1).max(65535) }))
     .optional(),
+  credentials: z.array(credentialInput).optional(),
   publicUrl: z.string().url().nullable().optional(),
   localUrl: z.string().optional(),
   note: z.string().optional(),
@@ -26,9 +35,47 @@ async function sectionExists(id: string): Promise<boolean> {
   return (await SectionModel.exists({ _id: id })) != null;
 }
 
+/**
+ * Cifra as credenciais recebidas do cliente antes de persistir. Uma credencial
+ * existente (`_id` presente) sem `password` mantém o segredo já salvo — senão
+ * o usuário seria obrigado a redigitar a senha toda vez que editasse o label.
+ */
+function resolveCredentials(
+  input: z.infer<typeof credentialInput>[] | undefined,
+  existing: HydratedDocument<Service> | null,
+) {
+  if (!input) return undefined;
+  return input.map((c) => {
+    if (c.password) {
+      const enc = encryptSecret(c.password);
+      return { label: c.label, username: c.username, ...enc };
+    }
+    const prev = existing?.credentials?.find((p) => String(p._id) === c._id);
+    if (!prev) {
+      throw new Error(`Credencial "${c.label}" sem senha e sem correspondente existente`);
+    }
+    return {
+      label: c.label,
+      username: c.username,
+      cipherText: prev.cipherText,
+      iv: prev.iv,
+      authTag: prev.authTag,
+    };
+  });
+}
+
+/** Remove os segredos cifrados da resposta — a API nunca expõe isso fora do endpoint de reveal. */
+function redact(service: HydratedDocument<Service>) {
+  const obj = service.toObject();
+  return {
+    ...obj,
+    credentials: (obj.credentials ?? []).map((c) => ({ _id: c._id, label: c.label, username: c.username })),
+  };
+}
+
 servicesRouter.get('/', async (_req, res) => {
   const services = await ServiceModel.find().sort({ order: 1, name: 1 });
-  res.json(services);
+  res.json(services.map(redact));
 });
 
 servicesRouter.post('/', async (req, res) => {
@@ -41,8 +88,26 @@ servicesRouter.post('/', async (req, res) => {
     res.status(400).json({ error: 'Categoria (sectionId) não existe' });
     return;
   }
-  const service = await ServiceModel.create(parsed.data);
-  res.status(201).json(service);
+  let credentials;
+  try {
+    credentials = resolveCredentials(parsed.data.credentials, null);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+    return;
+  }
+  const service = await ServiceModel.create({ ...parsed.data, credentials });
+  res.status(201).json(redact(service));
+});
+
+servicesRouter.get('/:id/credentials/:credId/reveal', async (req, res) => {
+  const service = await ServiceModel.findById(req.params.id);
+  const cred = service?.credentials?.find((c) => String(c._id) === req.params.credId);
+  if (!cred) {
+    res.status(404).json({ error: 'Credencial não encontrada' });
+    return;
+  }
+  const password = decryptSecret(cred);
+  res.json({ username: cred.username, password });
 });
 
 const reorderBody = z.object({
@@ -124,12 +189,21 @@ servicesRouter.put('/:id', async (req, res) => {
     res.status(400).json({ error: 'Categoria (sectionId) não existe' });
     return;
   }
-  const service = await ServiceModel.findByIdAndUpdate(req.params.id, parsed.data, { new: true });
-  if (!service) {
+  const existing = await ServiceModel.findById(req.params.id);
+  if (!existing) {
     res.status(404).json({ error: 'Serviço não encontrado' });
     return;
   }
-  res.json(service);
+  let credentials;
+  try {
+    credentials = resolveCredentials(parsed.data.credentials, existing);
+  } catch (err) {
+    res.status(400).json({ error: (err as Error).message });
+    return;
+  }
+  const update = credentials === undefined ? parsed.data : { ...parsed.data, credentials };
+  const service = await ServiceModel.findByIdAndUpdate(req.params.id, update, { new: true });
+  res.json(redact(service!));
 });
 
 servicesRouter.delete('/:id', async (req, res) => {

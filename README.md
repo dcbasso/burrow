@@ -51,6 +51,7 @@ All variables live in `.env`, which is never committed — see `.env.example`:
 | `GOOGLE_CLIENT_ID` | OAuth 2.0 Client ID (Web) from the Google Cloud Console. The *Authorized JavaScript origins* must include the origin the app is served from. |
 | `ALLOWED_EMAILS` | Allowlist of emails authorized to log in, comma-separated. |
 | `MONGO_URI` | Mongo connection string. The default points to the compose container. |
+| `CREDENTIALS_ENCRYPTION_KEY` | AES-256 key (32 bytes, base64) used to encrypt the usernames/passwords saved on services. Generate with `openssl rand -base64 32`. Rotating it makes every previously saved credential unrecoverable. |
 
 Access is locked down by allowlist: the backend validates the Google token and rejects any
 email that is not in `ALLOWED_EMAILS`.
