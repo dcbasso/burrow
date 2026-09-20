@@ -34,6 +34,9 @@ services:
       MONGO_URI: mongodb://mongo:27017/burrow_demo
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       ALLOWED_EMAILS: ${ALLOWED_EMAILS}
+      # Chave fixa só para a demo (banco descartável). Em produção, gere a sua
+      # (ver .env.example na raiz) e nunca reaproveite esta.
+      CREDENTIALS_ENCRYPTION_KEY: ${CREDENTIALS_ENCRYPTION_KEY:-Kx3n0pQyN6iN3n5G8u2f9rWq7ZbA1sDkT4hV0mC8eJ4=}
     depends_on:
       mongo:
         condition: service_healthy

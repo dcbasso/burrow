@@ -89,10 +89,42 @@ import { TranslatePipe } from '../core/translate.pipe';
                 </div>
               </div>
             }
+            @if ((svc.credentials || []).length) {
+              <div class="row">
+                <span class="label">{{ 'drawer.credentials' | t }}</span>
+                <div class="creds">
+                  @for (c of svc.credentials; track c._id) {
+                    <div class="cred">
+                      <div class="credhead">
+                        <b>{{ c.label }}</b>
+                        <span class="val">{{ c.username }}</span>
+                      </div>
+                      <div class="urlrow">
+                        @if (revealed[c._id]) {
+                          <span class="val">{{ revealed[c._id] }}</span>
+                          <button type="button" class="btn btn-icon btn-ghost" (click)="copy(revealed[c._id])"
+                                  [title]="'drawer.copyPassword' | t" [attr.aria-label]="'drawer.copyPassword' | t">
+                            <app-ui-icon name="copy" [size]="14" />
+                          </button>
+                          <button type="button" class="btn btn-icon btn-ghost" (click)="hidePassword(c._id)"
+                                  [title]="'drawer.hidePassword' | t" [attr.aria-label]="'drawer.hidePassword' | t">
+                            <app-ui-icon name="close" [size]="14" />
+                          </button>
+                        } @else {
+                          <button type="button" class="btn btn-secondary btn-sm" (click)="reveal(svc._id, c._id)">
+                            {{ 'drawer.showPassword' | t }}
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
             @if (svc.note) {
               <div class="row"><span class="label">{{ 'drawer.notes' | t }}</span><span class="note">{{ svc.note }}</span></div>
             }
-            @if (!svc.publicUrl && !svc.localUrl && !svc.note && !(svc.ports || []).length) {
+            @if (!svc.publicUrl && !svc.localUrl && !svc.note && !(svc.ports || []).length && !(svc.credentials || []).length) {
               <p class="text-muted" style="font-size:13.5px">{{ 'drawer.noDetails' | t }}</p>
             }
           </div>
@@ -195,6 +227,27 @@ import { TranslatePipe } from '../core/translate.pipe';
             </div>
 
             <div class="field">
+              <label class="lbl">{{ 'form.credentialsLabel' | t }}</label>
+              @for (c of credentialRows; track $index) {
+                <div class="credrow">
+                  <div class="portrow">
+                    <input class="input" [(ngModel)]="c.label" [name]="'credLabel' + $index"
+                           [placeholder]="'form.credentialLabelPlaceholder' | t" />
+                    <input class="input" [(ngModel)]="c.username" [name]="'credUser' + $index"
+                           [placeholder]="'form.credentialUsernamePlaceholder' | t" />
+                    <button type="button" class="btn btn-icon btn-ghost" (click)="removeCredential($index)"
+                            [attr.aria-label]="'form.removeCredential' | t">
+                      <app-ui-icon name="close" [size]="12" />
+                    </button>
+                  </div>
+                  <input class="input" type="password" [(ngModel)]="c.password" [name]="'credPass' + $index"
+                         [placeholder]="(c._id ? 'form.credentialPasswordKeepPlaceholder' : 'form.credentialPasswordPlaceholder') | t" />
+                </div>
+              }
+              <button type="button" class="btn btn-secondary btn-sm" (click)="addCredential()">{{ 'form.addCredential' | t }}</button>
+            </div>
+
+            <div class="field">
               <label class="lbl">{{ 'form.note' | t }}</label>
               <textarea class="input" [(ngModel)]="model.note" name="note" rows="2"></textarea>
             </div>
@@ -279,6 +332,13 @@ import { TranslatePipe } from '../core/translate.pipe';
     .ports { display: flex; flex-direction: column; gap: 3px; }
     .port { font-size: 13.5px; }
     .port b { font-family: ui-monospace, Menlo, monospace; margin-right: 8px; }
+    /* Leitura: uma credencial por bloco, label + usuário na primeira linha, senha/ações embaixo. */
+    .creds { display: flex; flex-direction: column; gap: 10px; }
+    .cred { display: flex; flex-direction: column; gap: 4px; }
+    .credhead { display: flex; align-items: baseline; gap: 8px; font-size: 13.5px; }
+    .credhead .val { font-size: 13px; opacity: .8; }
+    /* Edição: label + usuário numa linha (reaproveita .portrow), senha embaixo. */
+    .credrow { display: flex; flex-direction: column; gap: 6px; }
     /* Edição: nome ocupa o resto, número tem largura fixa, X à direita. */
     .portrow { display: flex; align-items: center; gap: 6px; }
     .portrow .num { width: 92px; flex: none; }
@@ -310,6 +370,10 @@ export class ServiceDrawerComponent {
   // Linhas do editor de portas. `number` fica nullable porque a linha nasce vazia
   // (o input type=number entrega null enquanto o usuário não digita).
   portRows: { name: string; number: number | null }[] = [];
+  // `_id` presente = credencial já existente (senha em branco = manter a atual).
+  credentialRows: { _id?: string; label: string; username: string; password: string }[] = [];
+  // Senhas reveladas na sessão atual (modo leitura), indexadas por _id da credencial.
+  revealed: Record<string, string> = {};
   readonly saving = signal(false);
 
   constructor() {
@@ -327,11 +391,16 @@ export class ServiceDrawerComponent {
       ? { ...svc }
       : {
           name: '', sectionId: this.store.sections()[0]?._id, icon: 'fas fa-cube',
-          color: '#2496ed', tags: [], ports: [], publicUrl: null, localUrl: '', note: '',
+          color: '#2496ed', tags: [], ports: [], credentials: [], publicUrl: null, localUrl: '', note: '',
           enabled: true, order: 0,
         };
     this.tagsText = (this.model.tags ?? []).join(' ');
     this.portRows = (this.model.ports ?? []).map((p) => ({ name: p.name, number: p.number }));
+    // Senha nunca vem do backend fora do reveal — linha nasce sempre em branco.
+    this.credentialRows = (this.model.credentials ?? []).map((c) => ({
+      _id: c._id, label: c.label, username: c.username, password: '',
+    }));
+    this.revealed = {};
   }
 
   private seedSection(sec: Section | null): void {
@@ -355,6 +424,33 @@ export class ServiceDrawerComponent {
       .filter((p) => p.name && Number.isInteger(p.number) && p.number >= 1 && p.number <= 65535);
   }
 
+  addCredential(): void {
+    this.credentialRows.push({ label: '', username: '', password: '' });
+  }
+
+  removeCredential(i: number): void {
+    this.credentialRows.splice(i, 1);
+  }
+
+  /** Descarta linhas sem label/usuário; senha é opcional só quando `_id` já existe (mantém a atual). */
+  private cleanCredentials() {
+    return this.credentialRows
+      .map((c) => ({ _id: c._id, label: c.label.trim(), username: c.username.trim(), password: c.password }))
+      .filter((c) => c.label && c.username && (c.password || c._id));
+  }
+
+  reveal(serviceId: string, credId: string): void {
+    this.api.revealCredential(serviceId, credId).subscribe({
+      next: ({ password }) => (this.revealed = { ...this.revealed, [credId]: password }),
+      error: () => this.snack.open(this.i18n.t('drawer.revealFailed'), 'ok', { duration: 4000 }),
+    });
+  }
+
+  hidePassword(credId: string): void {
+    const { [credId]: _, ...rest } = this.revealed;
+    this.revealed = rest;
+  }
+
   startEdit(svc: Service): void {
     this.store.editService(svc);
   }
@@ -369,7 +465,7 @@ export class ServiceDrawerComponent {
   saveService(svc: Service | null): void {
     const tags = this.tagsText.split(/\s+/).map((t) => t.trim()).filter(Boolean);
     const publicUrl = this.model.publicUrl?.trim() ? this.model.publicUrl.trim() : null;
-    const body = { ...this.model, tags, ports: this.cleanPorts(), publicUrl };
+    const body = { ...this.model, tags, ports: this.cleanPorts(), credentials: this.cleanCredentials(), publicUrl };
     const req = svc ? this.api.updateService(svc._id, body) : this.api.createService(body);
     this.saving.set(true);
     req.subscribe({

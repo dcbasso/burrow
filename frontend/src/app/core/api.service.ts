@@ -1,7 +1,10 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Section, Service } from './models';
+import { Section, Service, ServiceCredentialInput } from './models';
+
+/** Corpo de criação/edição de serviço: como `Service`, mas com credenciais em formato de entrada. */
+type ServiceRequestBody = Partial<Omit<Service, 'credentials'>> & { credentials?: ServiceCredentialInput[] };
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -28,10 +31,10 @@ export class ApiService {
   listServices(): Observable<Service[]> {
     return this.http.get<Service[]>('/api/services');
   }
-  createService(body: Partial<Service>): Observable<Service> {
+  createService(body: ServiceRequestBody): Observable<Service> {
     return this.http.post<Service>('/api/services', body);
   }
-  updateService(id: string, body: Partial<Service>): Observable<Service> {
+  updateService(id: string, body: ServiceRequestBody): Observable<Service> {
     return this.http.put<Service>(`/api/services/${id}`, body);
   }
   deleteService(id: string): Observable<unknown> {
@@ -45,5 +48,10 @@ export class ApiService {
   }
   removeTag(tag: string): Observable<unknown> {
     return this.http.put('/api/services/tags/remove', { tag });
+  }
+  revealCredential(serviceId: string, credId: string): Observable<{ username: string; password: string }> {
+    return this.http.get<{ username: string; password: string }>(
+      `/api/services/${serviceId}/credentials/${credId}/reveal`,
+    );
   }
 }

@@ -18,6 +18,7 @@ services:
       MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/homelab}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
       ALLOWED_EMAILS: ${ALLOWED_EMAILS}
+      CREDENTIALS_ENCRYPTION_KEY: ${CREDENTIALS_ENCRYPTION_KEY}
     depends_on:
       mongo:
         condition: service_healthy
